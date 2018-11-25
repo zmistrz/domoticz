@@ -87,7 +87,7 @@ class eQ3Plugin:
 
     def runCommand(self,param):
         mac = Parameters["Address"]
-        cmd = '/home/pi/eq3/eq3.exp ' + mac+ ' '+param
+        cmd = 'eq3.exp ' + mac+ ' '+param
         Domoticz.Log(cmd)
         result = pexpect.run(cmd)
         Domoticz.Log(result.decode("utf-8"))
@@ -198,7 +198,7 @@ class eQ3Plugin:
         try:
          mac = Parameters["Address"]
          # https://github.com/Heckie75/eQ-3-radiator-thermostat/blob/master/eq3.exp
-         result = pexpect.run('/home/pi/eq3/eq3.exp '+mac+' json')
+         result = pexpect.run('eq3.exp '+mac+' json')
          data = json.loads(result.decode("utf-8"))
          #Domoticz.Log(str(data))
          self.updateData(data)
