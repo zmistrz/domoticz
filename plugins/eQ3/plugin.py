@@ -197,6 +197,7 @@ class eQ3Plugin:
     def refresh(self):
         try:
          mac = Parameters["Address"]
+         # https://github.com/Heckie75/eQ-3-radiator-thermostat/blob/master/eq3.exp
          result = pexpect.run('/home/pi/eq3/eq3.exp '+mac+' json')
          data = json.loads(result.decode("utf-8"))
          #Domoticz.Log(str(data))
