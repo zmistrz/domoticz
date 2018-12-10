@@ -36,19 +36,19 @@ class eQ3Plugin:
      #Devices[5].Delete()
 
      if (len(Devices) == 0):
-       Domoticz.Device(Name="na głowicy",Unit=1,Type=242,Subtype=1).Create()
-       Domoticz.Device(Name="w pokoju",Unit=2,Type=242,Subtype=2).Create()
-       Domoticz.Device(Name="otwarcie głowicy", Unit=3, Type=243,Subtype=6).Create()
+       #Domoticz.Device(Name="na głowicy",Unit=1,Type=242,Subtype=1).Create()
+       #Domoticz.Device(Name="w pokoju",Unit=2,Type=242,Subtype=2).Create()
+       #Domoticz.Device(Name="otwarcie głowicy", Unit=3, Type=243,Subtype=6).Create()
        myOptions = {"LevelActions": "Off|10|20|30|40",
                   "LevelNames": "Off|Maksimum|Test|Manualny|Auto",
                   "LevelOffHidden": "false",
                   "SelectorStyle": "0"}
        #Domoticz.Device(Name="Tryb pracy", Unit=4, Type=244,Subtype=62,Options=myOptions).Create()
-       Domoticz.Device(Name="Tryb pracy", Unit=4, TypeName="Selector Switch", Options=myOptions).Create()
-       Domoticz.Device(Name="Blokada", Unit=5, TypeName="Switch", Options=myOptions).Create()
+       #Domoticz.Device(Name="Tryb pracy", Unit=4, TypeName="Selector Switch", Options=myOptions).Create()
+       #Domoticz.Device(Name="Blokada", Unit=5, TypeName="Switch", Options=myOptions).Create()
 
      Domoticz.Heartbeat(30) 
-     Domoticz.Log("Devices created.")
+     #Domoticz.Log("Devices created.")
 
 
     def onStop(self):
@@ -89,11 +89,15 @@ class eQ3Plugin:
         mac = Parameters["Address"]
         cmd = 'eq3.exp ' + mac+ ' '+param
         Domoticz.Log(cmd)
-        result = pexpect.run(cmd)
-        Domoticz.Log(result.decode("utf-8"))
-        time.sleep(2)
-        self.refresh()
-        return result
+        try:
+            result = pexpect.run(cmd)
+            Domoticz.Log(result.decode("utf-8"))
+            time.sleep(2)
+            self.refresh()
+            return None
+        except:
+            return None
+
 
     def changeLocked(self,Locked,mac):
         try:
@@ -157,7 +161,10 @@ class eQ3Plugin:
 
     def updateData(self,data):
 
-       # Update Temp from eQ3
+         if(data==None):
+          Domoticz.Log("Brak danych z czujnika")
+          return
+        # Update Temp from eQ3
          self.updateDevice(1,1,str(data["temperature"]))
 
        # Update Temp in room
