@@ -1,10 +1,13 @@
 # domoticz
 
+1.Zainstalować wtyczkę do pythona, która służy do uruchamiania poleceń unix w środowisku pythona:
+sudo pip3 install pexpect
 
-Po pobraniu należy wejść katalog pluginu i wykonać poniższe polecenie
-git clone https://github.com/pexpect/pexpect.git
+2.Po pobraniu należy wejść katalog pluginu i w pliku plugin.py linia 16 zmienić lokalizację do bibliotek pythona na własną ścieżkę, którą można sprawdzić wpisując polecenie:
+sudo pip3 install pexpect, które powinno zwrócić coś takiego: Requirement already satisfied: pexpect in /usr/local/lib/python3.6/dist-packages
 
-Niestety instalacja poprzez pip nie działa. (pip install pexpect oraz pip3 install pexpect)
+Niestety instalacja poprzez pip nie działa. (pip install pexpect oraz pip3 install pexpect). 
+Jest jakiś problem polegający na tym że Domoticz nie widzi pakietów bibliotek zainstalowanych w domyślnej lokalizacji pythona (może to poprawią kiedyś :) ).
 
 Dostajemy błąd:
 
