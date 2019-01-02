@@ -1,0 +1,3 @@
+[submodule "plugins/eQ3/pexpect"]
+	path = plugins/eQ3/pexpect
+	url = https://github.com/pexpect/pexpect
