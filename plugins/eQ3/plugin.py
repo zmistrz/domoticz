@@ -8,13 +8,14 @@
 """
 <plugin key="eQ3Bth" name="eq3 Bluetooth Python Plugin" author="pzawisza" version="1.0.0" wikilink="http://www.domoticz.com/wiki/plugins/plugin.html" externallink="https://pawel-zawisza.pl/">
     <params>
-     <param field="Address" label="Adres MAC" width="200px" required="true" default="00:00:00:00:00:00"/>            
+     <param field="Address" label="Adres MAC" width="200px" required="true" default="00:00:00:00:00:00"/>
     </params>
 </plugin>
 """
 import os,sys
+sys.path.append('/usr/local/lib/python3.6/dist-packages')
 import Domoticz
-#import ptyprocess
+import ptyprocess
 import json
 import pexpect
 import time
@@ -22,6 +23,7 @@ import time
 class eQ3Plugin:
     enabled = False
     data = None
+    plugin_path = '/home/domoticz/domoticz/plugins/eQ3'
     def __init__(self):
         #self.child = pexcept.spawn('/usr/bin/gattool -I')
 
@@ -36,19 +38,19 @@ class eQ3Plugin:
      #Devices[5].Delete()
 
      if (len(Devices) == 0):
-       #Domoticz.Device(Name="na głowicy",Unit=1,Type=242,Subtype=1).Create()
-       #Domoticz.Device(Name="w pokoju",Unit=2,Type=242,Subtype=2).Create()
-       #Domoticz.Device(Name="otwarcie głowicy", Unit=3, Type=243,Subtype=6).Create()
+       Domoticz.Device(Name="na głowicy",Unit=1,Type=242,Subtype=1).Create()
+       Domoticz.Device(Name="w pokoju",Unit=2,Type=242,Subtype=2).Create()
+       Domoticz.Device(Name="otwarcie głowicy", Unit=3, Type=243,Subtype=6).Create()
        myOptions = {"LevelActions": "Off|10|20|30|40",
                   "LevelNames": "Off|Maksimum|Test|Manualny|Auto",
                   "LevelOffHidden": "false",
                   "SelectorStyle": "0"}
-       #Domoticz.Device(Name="Tryb pracy", Unit=4, Type=244,Subtype=62,Options=myOptions).Create()
-       #Domoticz.Device(Name="Tryb pracy", Unit=4, TypeName="Selector Switch", Options=myOptions).Create()
-       #Domoticz.Device(Name="Blokada", Unit=5, TypeName="Switch", Options=myOptions).Create()
+       Domoticz.Device(Name="Tryb pracy", Unit=4, Type=244,Subtype=62,Options=myOptions).Create()
+       Domoticz.Device(Name="Tryb pracy", Unit=4, TypeName="Selector Switch", Options=myOptions).Create()
+       Domoticz.Device(Name="Blokada", Unit=5, TypeName="Switch", Options=myOptions).Create()
 
-     Domoticz.Heartbeat(30) 
-     #Domoticz.Log("Devices created.")
+     Domoticz.Heartbeat(30)
+     Domoticz.Log("Devices created.")
 
 
     def onStop(self):
@@ -87,7 +89,7 @@ class eQ3Plugin:
 
     def runCommand(self,param):
         mac = Parameters["Address"]
-        cmd = 'eq3.exp ' + mac+ ' '+param
+        cmd = self.plugin_path+'/eq3.exp ' + mac+ ' '+param
         Domoticz.Log(cmd)
         try:
             result = pexpect.run(cmd)
@@ -95,7 +97,8 @@ class eQ3Plugin:
             time.sleep(2)
             self.refresh()
             return None
-        except:
+        except Exception as e:
+            Domoticz.Error("Error durring run command" + str(e))
             return None
 
 
@@ -105,17 +108,18 @@ class eQ3Plugin:
             if(Locked=="On"):
              state = "lock"
              self.updateDevice(5,1,Locked)
-            else:  
+            else:
              state = "unlock"
              self.updateDevice(5,0,Locked)
 
             self.runCommand(state)
-        except:
+        except Exception as e:
+            Domoticz.Error("Error during changeLocked" + str(e))
             Domoticz.Log("Error on change lock to: "+str(Level)+" on mac:"+mac)
 
     def changeMode(self,Level,mac):
- 
-        #try:   
+
+        #try:
          if(Level==0):
            state = "off"
          elif(Level==10):
@@ -143,7 +147,7 @@ class eQ3Plugin:
          #  Domoticz.Log("Error on change Mode to: "+str(Level)+" on mac:"+mac)
 
     def updateDevice(self,Unit, nValue, sValue):
-    # Make sure that the Domoticz device still exists (they can be deleted) before updating it 
+    # Make sure that the Domoticz device still exists (they can be deleted) before updating it
      if (Unit in Devices):
      # if (Devices[Unit].nValue != nValue) or (Devices[Unit].sValue != sValue):
       Devices[Unit].Update(nValue, str(sValue))
@@ -168,7 +172,8 @@ class eQ3Plugin:
          self.updateDevice(1,1,str(data["temperature"]))
 
        # Update Temp in room
-         self.updateDevice(2,0,"0")
+         #Po co jest ten update? co to za urzadzenie?
+         #self.updateDevice(2,0,"0")
 
        # Update Head
          self.updateDevice(3,1,str(data["valve"]))
@@ -184,8 +189,8 @@ class eQ3Plugin:
           self.updateDevice(4,30,str(30))
          elif(data["mode"]["boost"]==True):
           self.updateDevice(4,20,str(20))
-       
-       # Update Locked  
+
+       # Update Locked
          if(data["mode"]["locked"]==True):
           self.updateDevice(5,1,"On")
          elif(data["mode"]["locked"]!=True):
@@ -204,15 +209,16 @@ class eQ3Plugin:
     def refresh(self):
         try:
          mac = Parameters["Address"]
-         # https://github.com/Heckie75/eQ-3-radiator-thermostat/blob/master/eq3.exp
-         result = pexpect.run('eq3.exp '+mac+' json')
+         Domoticz.Log(mac)
+         Domoticz.Log(self.plugin_path)
+         result = pexpect.run(self.plugin_path + '/eq3.exp ' + mac + ' json')
          data = json.loads(result.decode("utf-8"))
-         #Domoticz.Log(str(data))
+         Domoticz.Log(str(data))
          self.updateData(data)
-        except:
-         Domoticz.Log("Cannot connect to eQ3 - please restart domoticz")
-        #data = json.load(open('/home/pi/domoticz/plugins/eQ3/test_eq3.json'))
-        #self.updateData(data)
+        except Exception as e :
+         Domoticz.Error("Error durring run pexpect" + str(e))
+         #data = json.load(open('/home/pi/domoticz/plugins/eQ3/test_eq3.json'))
+         #self.updateData(data)
 
 global _plugin
 _plugin = eQ3Plugin()
